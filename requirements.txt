@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+tensorflow       # أو tensorflow-cpu إذا ستستخدم CPU فقط
+opencv-python-headless
+nibabel
+numpy
+python-multipart
+matplotlib
+nilearn
+scikit-image
+trimesh
