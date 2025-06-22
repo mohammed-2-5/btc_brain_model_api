@@ -1,77 +1,83 @@
-# 🧠 Brain MRI Segmentation API (FastAPI)
 
-A powerful FastAPI backend for processing 3D MRI brain scans. It:
-- Segments brain tumors from FLAIR and T1ce NIfTI images.
-- Visualizes image slices and segmentation overlays.
-- Exports tumor meshes and brain surfaces as `.glb` 3D models.
+# 🧠 FastAPI Backend – Brain MRI Segmentation
+
+This FastAPI backend serves endpoints for brain tumor segmentation, image visualization, and 3D mesh generation from MRI scans in NIfTI format.
 
 ---
 
-## 📦 Features
+## ⚙️ Features
 
-- **`/predict`**: Returns 6 slice images with predicted tumor masks.
-- **`/plot_preview`**: Generates a PNG plot with `nilearn` overlays.
-- **`/tumor_mesh`**: Exports tumor regions as 3D GLB models.
-- **`/brain_mesh`**: Exports a complete brain + tumor mesh (GLB).
+- `/predict`: Returns 6 PNG slices from MRI scan with overlaid tumor predictions.
+- `/plot_preview`: Generates a 4-panel anatomical image using Nilearn.
+- `/tumor_mesh`: Produces a color-coded 3D tumor mesh (GLB format).
+- `/brain_mesh`: Generates a combined 3D brain and tumor mesh (GLB format).
 
-All static outputs are served via `/static/`.
+All output files are served under the `static/` directory.
 
 ---
 
-## 🔧 Installation
+## 📦 Requirements
 
-### 1. Clone the project
-
-```bash
-git clone https://github.com/your-username/brain-mri-fastapi.git
-cd brain-mri-fastapi
-```
-
-### 2. Create a virtual environment
+Install Python 3.8 or higher, then:
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+pip install --upgrade pip
 ```
 
-### 3. Install dependencies
+### Required Packages
+Create a `requirements.txt` or install manually:
 
 ```bash
-pip install -r requirements.txt
-```
-
-If you don't have `requirements.txt`, create one with:
-
-```txt
-fastapi
-uvicorn
-python-multipart
-numpy
-opencv-python
-nibabel
-nilearn
-matplotlib
-trimesh
-scikit-image
-tensorflow  # Optional: if you want to use the trained model
+pip install fastapi uvicorn python-multipart numpy opencv-python nibabel nilearn matplotlib trimesh scikit-image tensorflow
 ```
 
 ---
 
-## 🧪 Running the App Locally
+## 📁 Project Structure
 
-Make sure your model is in the path:
+```
+.
+├── main.py               # Main FastAPI app
+├── models/               # Pre-trained segmentation model (.h5)
+├── static/               # Output PNGs, plots, GLB files
+│   ├── slices/
+│   ├── plots/
+│   └── models/
+```
+
+Ensure this folder structure exists (created automatically by the script if missing).
+
+---
+
+## 🔍 Model
+
+Place your trained Keras model in:
+
 ```
 models/3D_MRI_Brain_tumor_segmentation.h5
 ```
 
-Then start the API:
+If missing, a dummy model will be used that returns empty predictions.
+
+---
+
+## 🚀 How to Run the Server
+
+Run the API using `uvicorn`:
+
+```bash
+uvicorn main:app --reload
+```
+
+### Or run directly with Python
 
 ```bash
 python main.py
 ```
 
-Or specify a custom port:
+### Optional: Specify port
 
 ```bash
 python main.py 8080
@@ -79,51 +85,59 @@ python main.py 8080
 
 ---
 
-## 📂 Folder Structure
+## 🧪 Sample Usage
 
-```
-main.py
-models/                   → Trained model file (.h5)
-static/
-  ├── slices/             → Output images from `/predict`
-  ├── plots/              → Output plots from `/plot_preview`
-  └── models/             → Output .glb files from `/tumor_mesh`, `/brain_mesh`
-```
-
----
-
-## 🧠 Sample Request
-
-### Predict Tumor Slices
+### 1. Predict slices
 
 ```bash
-curl -X POST http://localhost:8000/predict \
-  -F "nifti_flair=@/path/to/flair.nii.gz" \
-  -F "nifti_t1ce=@/path/to/t1ce.nii.gz"
+curl -X POST http://127.0.0.1:8000/predict   -F "nifti_flair=@flair.nii.gz"   -F "nifti_t1ce=@t1ce.nii.gz"
+```
+
+### 2. Plot preview
+
+```bash
+curl -X POST http://127.0.0.1:8000/plot_preview   -F "flair=@flair.nii.gz"   -F "seg=@seg.nii.gz"
+```
+
+### 3. Tumor mesh
+
+```bash
+curl -X POST http://127.0.0.1:8000/tumor_mesh   -F "seg=@seg.nii.gz"   -F "iso_level=0.5"
+```
+
+### 4. Brain mesh
+
+```bash
+curl -X POST http://127.0.0.1:8000/brain_mesh   -F "flair=@flair.nii.gz"   -F "seg=@seg.nii.gz"   -F "iso=0.12"   -F "tumor_iso=0.5"
 ```
 
 ---
 
-## 🌐 CORS
+## 🌐 Output Access
 
-All origins and methods are allowed:
-```python
-allow_origins=["*"], allow_methods=["*"], allow_headers=["*"]
+Files are saved and accessible under:
+
+```
+/static/slices/
+/static/plots/
+/static/models/
+```
+
+Example:
+```
+http://127.0.0.1:8000/static/slices/<run_id>/<file>.png
 ```
 
 ---
 
-## 📎 Notes
+## 📝 Notes
 
-- Make sure uploaded NIfTI files are 3D `.nii` or `.nii.gz`.
-- Tumor mesh colors: red, green, yellow by label.
-- Brain mesh is light gray; tumors are semi-transparent red in GLB.
+- All NIfTI files must be 3D `.nii` or `.nii.gz` format.
+- You can use tools like 3D Slicer or FSL to generate or view segmentation files.
+- Works seamlessly with the Flutter frontend (see separate `main.dart`).
 
 ---
 
-## ✅ To-Do / Future Improvements
+## 📧 Contact
 
-- Add Swagger UI docs for visual testing.
-- Enable GPU-based TensorFlow optimization.
-- Add user auth for protected endpoints (if needed).
-
+For support, feature requests, or bug reports, please raise an issue on the GitHub repo.
